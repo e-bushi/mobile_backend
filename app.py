@@ -66,9 +66,6 @@ def get_or_add_courses():
 
         result = courses_collection.insert_one(courses_dict)
 
-        json_result = dumps(courses_dict)
-
-        return (json_result, 201, None)
     elif request.method == 'GET':
         courses_collection = app.db.courses
         collection = courses_collection.find()
@@ -76,6 +73,9 @@ def get_or_add_courses():
         json_result = dumps(collection)
 
         return (json_result, 200, None)
+
+@app.route('/courses', methods = 'GET')
+def count_courses():
 
 
 @app.route('/carts', methods = ['POST'])
