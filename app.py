@@ -4,6 +4,10 @@ from flask import Flask, request
 from pymongo import MongoClient
 from bson import Binary, Code
 from bson.json_util import dumps
+from derp import *
+
+import bcrypt
+
 
 app = Flask(__name__)
 mongo = MongoClient('localhost', 27017)
@@ -37,23 +41,23 @@ def get_or_add_users():
     if request.method == 'POST':
         users_dict = request.json
         users_collection = app.db.users
-        
+
         result = users_collection.insert_one(users_dict)
-        
+
         json_result = dumps(users_dict)
-        
+
         return (json_result, 201, None)
     elif request.method == 'GET':
         name_ = request.args.get('name')
 
         users_collection = app.db.users
         collection = [users_collection.find()]
-        
+
 #        result_array = []
 #        result_array.append(collection)
 
         json_result = dumps(collection)
-    
+
     return (json_result, 200, None)
 
 
