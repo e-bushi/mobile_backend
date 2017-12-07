@@ -94,10 +94,13 @@ class Users(Resource):
     @authenticated_request
     def get(self):
         users_collection = app.db.users
-        auth_info = request.authorization.username
+        user = request.authorization.username
 
 
-        database_user = users_collection.find_one({'username': auth_info})
+        database_user = users_collection.find_one({'username': user)
+
+        if database_user is None:
+            return False
 
         #username
         return database_user
