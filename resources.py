@@ -21,7 +21,7 @@ app.bcrypt_rounds = 12
 
 
 
-def validate_auth(username, password):
+def validate_auth(user, password):
     # auth_info = request.authorization
     #
     # #username
@@ -31,7 +31,7 @@ def validate_auth(username, password):
     # password = auth_info.password
 
     user_collection = app.db.users
-    user = user_collection.find_one({'username': username})
+    user = user_collection.find_one({'username': user})
 
     # pdb.set_trace()
     if user is None:
