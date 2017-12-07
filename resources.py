@@ -93,30 +93,31 @@ class Users(Resource):
 
     @authenticated_request
     def get(self):
+        users_collection = app.db.users
+        auth_info = request.authorization.username
 
-        auth_info = request.authorization
-
+        database_user = users_collection.find_one({'username': username})
         #username
-        username = auth_info.username
+        return database_user
 
         #password
-        password = auth_info.password
-
-        users_collection = app.db.users
-        # Find user by email
-        database_user = users_collection.find_one({'username': username})
-
-        # Encode password
-        jsonEncodedPassword = password.encode('utf-8')
-
-        ## Check if client password from login matches database password
-        # Method 1: Use hashpw to compare passwords
-        if bcrypt.hashpw(jsonEncodedPassword, database_user['password']) == database_user['password']:
-            ## Let them in
-            return ("You have access {}".format(database_user['username']))
-        else:
-            ## Tell user they have invalid credentials
-            return ("Sorry, your credentials are incorrect")
+        # password = auth_info.password
+        #
+        # users_collection = app.db.users
+        # # Find user by email
+        # database_user = users_collection.find_one({'username': username})
+        #
+        # # Encode password
+        # jsonEncodedPassword = password.encode('utf-8')
+        #
+        # ## Check if client password from login matches database password
+        # # Method 1: Use hashpw to compare passwords
+        # if bcrypt.hashpw(jsonEncodedPassword, database_user['password']) == database_user['password']:
+        #     ## Let them in
+        #     return ("You have access {}".format(database_user['username']))
+        # else:
+        #     ## Tell user they have invalid credentials
+        #     return ("Sorry, your credentials are incorrect")
 
         # Method 2: Use checkpw
         # if bcrypt.checkpw(jsonEncodedPassword, bcrypt.gensalt(app.bcrypt_rounds)) == True:
