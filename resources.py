@@ -99,8 +99,7 @@ class Users(Resource):
 
         database_user = users_collection.find_one({'username': user)
 
-        if database_user is None:
-            return False
+        
 
         #username
         return database_user
