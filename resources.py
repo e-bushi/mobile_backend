@@ -97,9 +97,9 @@ class Users(Resource):
         user = request.authorization.username
 
 
-        database_user = users_collection.find_one({'username': user)
+        database_user = users_collection.find_one({'username': user})
 
-        
+
 
         #username
         return database_user
