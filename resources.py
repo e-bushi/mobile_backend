@@ -22,13 +22,13 @@ app.bcrypt_rounds = 12
 
 
 def validate_auth(email, password):
-    auth_info = request.authorization
-
-    #username
-    username = auth_info.username
-    # pdb.set_trace()
-    #password
-    password = auth_info.password
+    # auth_info = request.authorization
+    #
+    # #username
+    # username = auth_info.username
+    # # pdb.set_trace()
+    # #password
+    # password = auth_info.password
 
     user_collection = app.db.users
     user = user_collection.find_one({'username': username})
