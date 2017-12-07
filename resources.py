@@ -96,7 +96,9 @@ class Users(Resource):
         users_collection = app.db.users
         auth_info = request.authorization.username
 
-        database_user = users_collection.find_one({'username': username})
+
+        database_user = users_collection.find_one({'username': auth_info})
+
         #username
         return database_user
 
