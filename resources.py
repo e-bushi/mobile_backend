@@ -31,7 +31,7 @@ def validate_auth(email, password):
     # password = auth_info.password
 
     user_collection = app.db.users
-    user = user_collection.find_one({'username': username})
+    user = user_collection.find_one({'username': email})
 
     # pdb.set_trace()
     if user is None:
