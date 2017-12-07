@@ -40,7 +40,7 @@ def validate_auth(user, password):
         # check if the hash we generate based on auth matches stored hash
         encodedPassword = password.encode('utf-8')
         if bcrypt.hashpw(encodedPassword, user['password']) == user['password']:
-            g.setdefault('user', user)
+            # g.setdefault('user', user)
             return True
         else:
             return False
@@ -96,13 +96,10 @@ class Users(Resource):
         users_collection = app.db.users
         user = request.authorization.username
 
-
         database_user = users_collection.find_one({'username': user})
 
-
-
         #username
-        return database_user
+        return (database_user, 200, None)
 
         #password
         # password = auth_info.password
