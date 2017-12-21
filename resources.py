@@ -22,17 +22,8 @@ app.bcrypt_rounds = 12
 
 
 def validate_auth(user, password):
-    # auth_info = request.authorization
-    #
-    # #username
-    # username = auth_info.username
-    # # pdb.set_trace()
-    # #password
-    # password = auth_info.password
-
-    user_collection = app.db.users
-    user = user_collection.find_one({'username': user})
-
+    # users_collection = app.db.users
+    # database_user_password = users_collection.find_one()
     # pdb.set_trace()
     if user is None:
         return False
@@ -48,7 +39,7 @@ def validate_auth(user, password):
 def authenticated_request(func):
     def wrapper(*args, **kwargs):
         auth = request.authorization
-
+        
         if not auth or not validate_auth(auth.username, auth.password):
             return ({'error': 'Basic Auth Required.'}, 401, None)
 
