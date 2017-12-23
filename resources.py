@@ -22,15 +22,16 @@ app.bcrypt_rounds = 12
 
 
 def validate_auth(user, password):
-    # users_collection = app.db.users
-    # database_user_password = users_collection.find_one()
-    # pdb.set_trace()
-    if user is None:
+    users_collection = app.db.users
+    database_user = users_collection.find_one({"username": user})
+
+    if database_user is None:
         return False
     else:
         # check if the hash we generate based on auth matches stored hash
         encodedPassword = password.encode('utf-8')
-        if bcrypt.hashpw(encodedPassword, user['password']) == user['password']:
+
+        if bcrypt.checkpw(encodedPassword, database_user['password']):
             # g.setdefault('user', user)
             return True
         else:
@@ -39,7 +40,7 @@ def validate_auth(user, password):
 def authenticated_request(func):
     def wrapper(*args, **kwargs):
         auth = request.authorization
-        
+
         if not auth or not validate_auth(auth.username, auth.password):
             return ({'error': 'Basic Auth Required.'}, 401, None)
 
@@ -64,21 +65,11 @@ class Users(Resource):
             encodedPassword, bcrypt.gensalt(app.bcrypt_rounds)
         )
 
-        # hashed = hashed.decode()
         new_user['password'] = hashed
-        # json_body['password'] = hashed
+
         users_collection = app.db.users
         users_collection.insert_one(new_user)
 
-
-        # # Find user by email
-        # database_user = users_collection.find_one({'email': username})
-
-        # # # Encode password
-        # jsonEncodedPassword = request.json['password'].encode('utf-8')
-
-
-        # result = users_collection.insert_one(username)
         user = users_collection.find_one({"username": username})
         return user
 
@@ -89,97 +80,15 @@ class Users(Resource):
 
         database_user = users_collection.find_one({'username': user})
 
-        #username
         return (database_user, 200, None)
 
-        #password
-        # password = auth_info.password
-        #
-        # users_collection = app.db.users
-        # # Find user by email
-        # database_user = users_collection.find_one({'username': username})
-        #
-        # # Encode password
-        # jsonEncodedPassword = password.encode('utf-8')
-        #
-        # ## Check if client password from login matches database password
-        # # Method 1: Use hashpw to compare passwords
-        # if bcrypt.hashpw(jsonEncodedPassword, database_user['password']) == database_user['password']:
-        #     ## Let them in
-        #     return ("You have access {}".format(database_user['username']))
-        # else:
-        #     ## Tell user they have invalid credentials
-        #     return ("Sorry, your credentials are incorrect")
-
-        # Method 2: Use checkpw
-        # if bcrypt.checkpw(jsonEncodedPassword, bcrypt.gensalt(app.bcrypt_rounds)) == True:
-        #     ## Let them in
-        #     return ("Access granted")
-        # else:
-        #     ## Send 401 - Unauthorized
-        #     return ("Sorry, Unauthorized access")
-
-
-
-        ## Check if client password from login matches database password
-        # Method 1: Use hashpw to compare passwords
-
-        # if bcrypt.hashpw(jsonEncodedPassword, database_user['password']) == database_user['password']:
-        #     ## Let them in
-        #     print("in 1")
-        # else:
-        #     ## Tell user they have invalid credentials
-        #     print("failed 1")
-        #
-        # # Method 2: Use checkpw
-        # if bcrypt.checkpw(jsonEncodedPassword, bcrypt.gensalt(app.bcrypt_rounds)) == True:
-        #     ## Let them in
-        #     print("in 2")
-        # else:
-        #     ## Send 401 - Unauthorized
-        #     print("failed 2")
-
-    # def post(self):
-    #     new_user = request.json
-    #     users_collection = app.db.users
-    #     result = users_collection.insert_one(new_user)
-    #     user = users_collection.find_one({"_id": result.inserted_id})
-    #     return user
-
-    # def get(self):
-    #     name = request.args.get('name', type=str)
-    #     users_collection = app.db.users
-    #     user = users_collection.find_one({"name": name})
-    #
-    #     if user is None:
-    #         response = jsonify(data=[])
-    #         response.status_code = 404
-    #         return response
-    #     else:
-    #         return user
 
     def patch(self):
         name = request.args.get('name', type=str)
         favorite_food = request.args.get('favorite_food', type=str)
         new_favorite_food = request.args.get('new_favorite_food', type=str)
         users_collection = app.db.users
-        # dic = users_collection.aggregate(
-        #     [
-        #         {
-        #             '$project':
-        #                 {
-        #                     "number": {'$indexOfArray': ['$favorite_food', favorite_food]}
-        #                 }
-        #         }
-        #     ])
-        # pdb.set_trace()
-        # user = users_collection.find_one_and_update(
-        #     {"name": name},
-        #     {"$set": {"favorite_food.{}".format(int(dic["number"])): new_favorite_food}},
-        #     return_document=ReturnDocument.AFTER
-        # )
-
-        # foods = users_collection.find_one(favorite_food)
+        
         user = users_collection.find_one_and_update(
             {"name": name},
              {"$set": {"favorite_food.0": new_favorite_food}},
