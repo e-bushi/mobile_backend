@@ -5,6 +5,9 @@ from pymongo import MongoClient, ReturnDocument
 from bson import Binary, Code
 from bson.json_util import dumps
 from flask_restful import Resource, Api
+import random
+import time
+
 
 
 import bcrypt
@@ -88,7 +91,7 @@ class Users(Resource):
         favorite_food = request.args.get('favorite_food', type=str)
         new_favorite_food = request.args.get('new_favorite_food', type=str)
         users_collection = app.db.users
-        
+
         user = users_collection.find_one_and_update(
             {"name": name},
              {"$set": {"favorite_food.0": new_favorite_food}},
@@ -117,33 +120,72 @@ class Trips(Resource):
 
     def post(self):
         new_trip = request.json
-        userID = request.args.get('name')
-        users_collection = app.db.users
-        get_user = users_collection.find_one({"name": userID})
-#        pdb.set_trace()
-#        get_user['trips'] = new_trip
-#        get_user.save()
-        result = users_collection.update_one({"name": userID}, {"$push": {"trips": new_trip}})
-        pdb.set_trace()
-        return (result, 201, None)
+        new_trip_ar = new_trip['trips'][0]
+        userID = new_trip_ar['trip_creator']
+        did_attend = new_trip_ar['hasAttended']
+        trip_id = new_trip_ar['trip_id']
+        
+        #variable that stores the trips collection
+        trips_collection = app.db.trips
+
+        #insert new trip document into the trip collection
+        trips_collection.insert_one(new_trip)
+
+
+        return (validate_user, 201, None)
 
 
     def get(self):
-        # user = request.args.get('name')
-        trip = request.args.get('destination')
+
+        #Attains specific query parameters from user needed to fetch desired information
+        user = request.headers['trip_creator']
+        get_past_trips = request.headers['hasAttended']
+
+        #container for trips collection
+        trips_collection = app.db.trips
+
+        #Retrieve all trips that have the designated creator and has a specific Boolean value of attendance
+        #that the user designates
+        if get_past_trips == '':
+            #results in the retrieval of all trips for a given user
+            users_trips = trips_collection.find({"trip_creator": user})
+        else:
+            users_trips = trips_collection.find({"trip_creator": user, "hasAttended": {"$eq": get_past_trips.lower()}})
+
+        return (users_trips, 200, None)
+
+    def patch(self):
+        #json
+        body = request.json
+        userID = body['trip_creator']
+        trip_destination = body['trip_destination']
+        trip_creator_has_attended = body['hasAttended']
+        trip_id = body['trip_id']
+        trip_attendees = body['trip_attendees']
+
+
+        #container for trips collection
+        trips_collection = app.db.trips
+
+        #container for users collection
         users_collection = app.db.users
-        # trip_ = users_collection[trip]
-        result = users_collection.find({"trips.destination": trip}, {"trips.$":1})
-#        destination = users_collection.aggregate({"$match": {"trips.destination": trip}})
 
-#        if trip in result:
-#            destination = trip_[trip]
-#            return destination
+        trip = trips_collection.find_one({"trip_creator": userID, "trip_destination": trip_destination, "trip_id": trip_id})
 
-        return (result, 200, None)
 
-    # def patch(self):
-    #     user = request.args.get('name')
+        #condition to check if document exists within the trip collection; if so, update the hasAttended value
+        #if not insert a new document
+        if trip is None:
+            return ({'error': 'Resource not found.'}, 404, None)
+        else:
+            trips_collection.update_one({"trip_id": trip_id}, {"$set": {"hasAttended": trip_creator_has_attended}})
+
+            # time.sleep(1.0)
+            # new_trip = trips_collection.find_one({"trip_creator": userID, "trip_destination": trip_destination, "trip_id": trip_id})
+
+            return ({'Success': 'Trip Resource has been updated'}, 202, None)
+
+
 
 
 api.add_resource(Trips, '/trips')
