@@ -82,7 +82,6 @@ class Users(Resource):
         user = request.authorization.username
 
         database_user = users_collection.find_one({'username': user})
-
         return (database_user, 200, None)
 
 
@@ -120,11 +119,9 @@ class Trips(Resource):
 
     def post(self):
         new_trip = request.json
-        new_trip_ar = new_trip['trips'][0]
-        userID = new_trip_ar['trip_creator']
-        did_attend = new_trip_ar['hasAttended']
-        trip_id = new_trip_ar['trip_id']
-        
+        userID = new_trip['trip_creator']
+        did_attend = new_trip['did_attend']
+
         #variable that stores the trips collection
         trips_collection = app.db.trips
 
@@ -132,25 +129,34 @@ class Trips(Resource):
         trips_collection.insert_one(new_trip)
 
 
-        return (validate_user, 201, None)
+        return ({'Success': 'New trip has been created'}, 201, None)
 
 
     def get(self):
 
         #Attains specific query parameters from user needed to fetch desired information
         user = request.headers['trip_creator']
-        get_past_trips = request.headers['hasAttended']
+        did_attend = request.headers['did_attend']
+
+        if did_attend == "False" or did_attend == "false":
+            did_attend = False
+        elif did_attend == "True" or did_attend == "true":
+            did_attend = True
 
         #container for trips collection
         trips_collection = app.db.trips
 
         #Retrieve all trips that have the designated creator and has a specific Boolean value of attendance
         #that the user designates
-        if get_past_trips == '':
+        if did_attend == "" or did_attend is None:
             #results in the retrieval of all trips for a given user
             users_trips = trips_collection.find({"trip_creator": user})
+
+        elif did_attend is False:
+            users_trips = trips_collection.find({"trip_creator": user, "did_attend": {"$eq": did_attend}})
+
         else:
-            users_trips = trips_collection.find({"trip_creator": user, "hasAttended": {"$eq": get_past_trips.lower()}})
+            users_trips = trips_collection.find({"trip_creator": user, "did_attend": {"$eq": did_attend}})
 
         return (users_trips, 200, None)
 
@@ -158,30 +164,27 @@ class Trips(Resource):
         #json
         body = request.json
         userID = body['trip_creator']
-        trip_destination = body['trip_destination']
-        trip_creator_has_attended = body['hasAttended']
-        trip_id = body['trip_id']
+        destination = body['trip_destination']
+        did_attend = body['did_attend']
         trip_attendees = body['trip_attendees']
+
 
 
         #container for trips collection
         trips_collection = app.db.trips
 
-        #container for users collection
-        users_collection = app.db.users
 
-        trip = trips_collection.find_one({"trip_creator": userID, "trip_destination": trip_destination, "trip_id": trip_id})
-
+        trip = trips_collection.find_one({"trip_creator": userID, "trip_destination": destination})
 
         #condition to check if document exists within the trip collection; if so, update the hasAttended value
         #if not insert a new document
         if trip is None:
             return ({'error': 'Resource not found.'}, 404, None)
         else:
-            trips_collection.update_one({"trip_id": trip_id}, {"$set": {"hasAttended": trip_creator_has_attended}})
+            if len(trip_attendees) > 0:
+                trips_collection.update_one({"trip_creator": userID, "trip_destination": destination}, {"$push": {"trip_attendees": trip_attendees}})
 
-            # time.sleep(1.0)
-            # new_trip = trips_collection.find_one({"trip_creator": userID, "trip_destination": trip_destination, "trip_id": trip_id})
+            trips_collection.update_one({"trip_creator": userID, "trip_destination": destination}, {"$set": {"did_attend": did_attend}})
 
             return ({'Success': 'Trip Resource has been updated'}, 202, None)
 
