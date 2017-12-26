@@ -74,7 +74,7 @@ class Users(Resource):
         users_collection.insert_one(new_user)
 
         user = users_collection.find_one({"username": username})
-        return user
+        return (user, 201, None)
 
     @authenticated_request
     def get(self):
