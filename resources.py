@@ -87,22 +87,7 @@ class Users(Resource):
 
     def patch(self):
         name = request.args.get('name', type=str)
-        favorite_food = request.args.get('favorite_food', type=str)
-        new_favorite_food = request.args.get('new_favorite_food', type=str)
-        users_collection = app.db.users
 
-        user = users_collection.find_one_and_update(
-            {"name": name},
-             {"$set": {"favorite_food.0": new_favorite_food}},
-             return_document=ReturnDocument.AFTER
-        )
-        print(user)
-        if user is None:
-            response = jsonify(data=[])
-            response.status_code = 404
-            return response
-        else:
-            return user
 
 
 @api.representation('application/json')
@@ -119,6 +104,7 @@ class Trips(Resource):
 
     def post(self):
         new_trip = request.json
+
         userID = new_trip['trip_creator']
         did_attend = new_trip['did_attend']
 
@@ -163,12 +149,11 @@ class Trips(Resource):
     def patch(self):
         #json
         body = request.json
+
         userID = body['trip_creator']
         destination = body['trip_destination']
         did_attend = body['did_attend']
         trip_attendees = body['trip_attendees']
-
-
 
         #container for trips collection
         trips_collection = app.db.trips
