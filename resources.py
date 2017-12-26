@@ -144,7 +144,7 @@ class Trips(Resource):
         else:
             users_trips = trips_collection.find({"trip_creator": user, "did_attend": {"$eq": did_attend}})
 
-        return (users_trips, 200, None)
+        return (users_trips, 202, None)
 
     def patch(self):
         #json
